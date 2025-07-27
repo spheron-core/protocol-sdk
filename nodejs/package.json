@@ -1,0 +1,73 @@
+{
+  "name": "@spheron/protocol-sdk",
+  "version": "2.4.2",
+  "description": "Spheron Protocol SDK",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spheronFdn/protocol-sdk.git"
+  },
+  "author": "Spheron",
+  "keywords": [
+    "spheron",
+    "sdk",
+    "protocol"
+  ],
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c rollup.config.mjs",
+    "test": "jest",
+    "lint": "eslint --ext .js,.ts,.cjs src",
+    "lint:fix": "eslint --ext .js,.ts,.cjs src --fix",
+    "format": "prettier --write 'src/**/*.{js,ts}'",
+    "dev": "node dist/esm/index.js"
+  },
+  "sideEffects": [
+    "*.js"
+  ],
+  "devDependencies": {
+    "@rollup/plugin-alias": "^5.1.0",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.14.12",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "dayjs": "^1.11.12",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^8.0.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "jest": "^29.0.0",
+    "prettier": "^2.0.0",
+    "rollup": "^4.34.8",
+    "rollup-plugin-dts": "^6.1.1",
+    "ts-jest": "^29.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@biconomy/abstractjs": "^0.3.0",
+    "@rhinestone/module-sdk": "^0.2.7",
+    "base64-js": "^1.5.1",
+    "ethers": "^6.13.1",
+    "js-yaml": "^4.1.0",
+    "viem": "^2.33.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
