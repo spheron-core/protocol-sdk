@@ -121,13 +121,13 @@ export class InventoryModule {
 
           const gpuCount = fizzGpuCountMap.get(key)!;
 
-          const { gpuPricePerHour, gpuPricePerMonth } = gpuConfig;
+          const { fizzGpuPricePerHour, fizzGpuPricePerMonth } = gpuConfig;
 
           acc[gpuShortName] = {
             available: gpuCount.available,
             allocatable: gpuCount.allocatable,
-            pricePerHr: gpuPricePerHour,
-            pricePerMonth: gpuPricePerMonth,
+            pricePerHr: fizzGpuPricePerHour,
+            pricePerMonth: fizzGpuPricePerMonth,
           };
 
           return acc;
