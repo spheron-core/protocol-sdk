@@ -27,8 +27,7 @@ interface ServiceDetails {
   total: number;
   uris: string[] | null;
   observed_generation: number;
-  replicas: number;
-  updated_replicas: number;
+  target_replicas: number;
   ready_replicas: number;
   available_replicas: number;
   container_statuses: ContainerStatus[];
