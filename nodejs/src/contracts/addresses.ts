@@ -53,6 +53,7 @@ export const RewardTokenMainnet = '0xA0c5ba7d9eccbE59000e8E67654CA5d867C6b401';
 
 // Mainnet Token Addresses
 export const uSPONMainnet = '0xBf0fA0461331d815A103e59929E5a19A48C30f5e';
+export const SPONMainnet = '0x080D43c2164AFdBc3712422CE78Ab902ccaB5CA1';
 
 export const contractAddresses = {
   testnet: {
@@ -80,6 +81,7 @@ export const contractAddresses = {
     WETH: WETHTestnet,
     CST: CSTTestnet,
     uSPON: uSPONTestnet,
+    SPON: SPONTestnet,
   },
   mainnet: {
     accessControlManager: AccessControlMainnet,
@@ -102,5 +104,6 @@ export const contractAddresses = {
     fizzRewardManager: FizzRewardManagerMainnet,
     rewardToken: RewardTokenMainnet,
     uSPON: uSPONMainnet,
+    SPON: SPONMainnet,
   },
 };
