@@ -1,10 +1,10 @@
 {
   "name": "@spheron/protocol-sdk",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "description": "Spheron Protocol SDK",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/spheronFdn/protocol-sdk.git"
+    "url": "git+https://github.com/spheron-core/protocol-sdk.git"
   },
   "author": "Spheron",
   "keywords": [

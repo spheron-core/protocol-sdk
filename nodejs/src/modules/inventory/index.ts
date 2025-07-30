@@ -1,10 +1,8 @@
 import { NetworkType, RpcUrls } from '@config/index';
-import FizzRegistryAbi from '@contracts/abis/testnet/FizzRegistry.json';
 import { FizzModule } from '@modules/fizz';
 import { ProviderModule } from '@modules/provider';
 import { Provider, ProviderStatus } from '@modules/provider/types';
-import { handleContractError } from '@utils/errors';
-import GpuConfig from '@utils/gpu-config';
+import { GpuConfig } from '@utils/gpu-config';
 import { requestPipeline } from '@utils/index';
 import { createAuthorizationToken } from '@utils/provider-auth';
 import { subgraphGetProviders } from '@utils/subgraph';
@@ -123,13 +121,13 @@ export class InventoryModule {
 
           const gpuCount = fizzGpuCountMap.get(key)!;
 
-          const { gpuPricePerHour, gpuPricePerMonth } = gpuConfig;
+          const { fizzGpuPricePerHour, fizzGpuPricePerMonth } = gpuConfig;
 
           acc[gpuShortName] = {
             available: gpuCount.available,
             allocatable: gpuCount.allocatable,
-            pricePerHr: gpuPricePerHour,
-            pricePerMonth: gpuPricePerMonth,
+            pricePerHr: fizzGpuPricePerHour,
+            pricePerMonth: fizzGpuPricePerMonth,
           };
 
           return acc;
