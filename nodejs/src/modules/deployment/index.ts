@@ -15,6 +15,7 @@ import { ServiceManifest } from '@utils/manifest-utils';
 import { getTokenDetails, replaceDomain } from '@utils/index';
 import { createAuthorizationToken } from '@utils/provider-auth';
 import { NetworkType, RpcUrls } from '@config/index';
+import { contractAddresses } from '@contracts/addresses';
 import { ethers } from 'ethers';
 import * as yaml from 'js-yaml';
 import {
@@ -77,7 +78,16 @@ export class DeploymentModule {
       const icl = yaml.load(iclYaml) as any;
       const isV2 = Number(icl.version) === 2;
       const sdlManifest = isV2 ? getManifestV2(iclYaml) : getManifestIcl(iclYaml);
-      const { token, maxPrice, numOfBlocks } = details;
+      const { token, maxPrice, numOfBlocks, mode } = details;
+      
+      // Check if this is a fizz deployment (mode === 0) and validate token
+      if (mode === 0) {
+        const sponTokenAddress = contractAddresses[this.networkType].SPON;
+        if (token.toLowerCase() !== sponTokenAddress.toLowerCase()) {
+          throw new Error('For fizz deployments, only SPON token is allowed');
+        }
+      }
+      
       const tokenDetails = getTokenDetails(token, this.networkType as NetworkType);
       const decimal = 18;
       const totalCost = (Number(maxPrice.toString()) / 10 ** decimal) * Number(numOfBlocks);
@@ -170,7 +180,16 @@ export class DeploymentModule {
       const icl = yaml.load(iclYaml) as any;
       const isV2 = icl.version === '2.0';
       const sdlManifest = isV2 ? getManifestV2(iclYaml) : getManifestIcl(iclYaml);
-      const { token, maxPrice, numOfBlocks } = details;
+      const { token, maxPrice, numOfBlocks, mode } = details;
+      
+      // Check if this is a fizz deployment (mode === 0) and validate token
+      if (mode === 0) {
+        const sponTokenAddress = contractAddresses[this.networkType].SPON;
+        if (token.toLowerCase() !== sponTokenAddress.toLowerCase()) {
+          throw new Error('For fizz deployments, only SPON token is allowed');
+        }
+      }
+      
       const tokenDetails = getTokenDetails(token, this.networkType as NetworkType);
       const decimal = 18;
       const totalCost =
