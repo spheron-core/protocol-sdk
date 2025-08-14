@@ -28,7 +28,7 @@ export class LeaseModule {
     wallet?: ethers.Wallet,
     networkType?: NetworkType,
     private smartWalletBundlerClientPromise?: Promise<SmartWalletBundlerClient>,
-    rpcUrls?: RpcUrls,
+    rpcUrls?: RpcUrls
   ) {
     this.provider = provider;
     this.getLeaseDetails = this.getLeaseDetails.bind(this);
@@ -209,7 +209,7 @@ export class LeaseModule {
     };
 
     const types = {
-      CreateOrder: [
+      CloseLease: [
         { name: 'leaseId', type: 'uint256' },
         { name: 'nonce', type: 'uint256' },
         { name: 'deadline', type: 'uint256' },

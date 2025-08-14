@@ -48,7 +48,7 @@ If you'd prefer to run the server manually from the source code, follow these st
 Clone the repository containing the `provider-proxy-server`:
 
 ```bash
-git clone https://github.com/spheronFdn/protocol-sdk.git
+git clone https://github.com/spheron-core/protocol-sdk.git
 ```
 
 Navigate to the `provider-proxy-server` directory:

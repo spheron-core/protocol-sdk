@@ -309,57 +309,47 @@ The Deployment Module streamlines the process of creating, updating, retrieving,
 
 #### 1. `createDeployment`
 
-Creates a new deployment using the [ICL (Infrastructure Configuration Language) YAML](https://docs.spheron.network/user-guide/icl) configuration.
+Creates a new deployment using the [ICL (Infrastructure Configuration Language) YAML](https://docs.spheron.network/rent-gpu/icl) configuration.
 
 ```javascript
 const iclYaml = `
-version: "1.0"
+version: "2.0"
 
 services:
   py-cuda:
     image: quay.io/jupyter/pytorch-notebook:cuda12-pytorch-2.4.1
-    expose:
+    port_policy:
       - port: 8888
         as: 8888
         to:
           - global: true
     env:
       - JUPYTER_TOKEN=sentient
-profiles:
-  name: py-cuda
+    resources:
+      cpu:
+        units: 8
+      memory:
+        size: 16Gi
+      storage:
+        - size: 200Gi
+      gpu:
+        units: 1
+        attributes:
+          vendor:
+            nvidia:
+              - model: rtx4090
+      pricing:
+        token: uSPON
+        amount: 10
+      replica: 1
+
+deployment:
   duration: 2h
   mode: provider
   tier:
     - community
-  compute:
-    py-cuda:
-      resources:
-        cpu:
-          units: 8
-        memory:
-          size: 16Gi
-        storage:
-          - size: 200Gi
-        gpu:
-          units: 1
-          attributes:
-            vendor:
-              nvidia:
-                - model: rtx4090
-  placement:
-    westcoast:
-      attributes:
-        region: us-central
-      pricing:
-        py-cuda:
-          token: uSPON
-          amount: 10
-
-deployment:
-  py-cuda:
-    westcoast:
-      profile: py-cuda
-      count: 1
+  attributes:
+    region: us-central
 `;
 
 const providerProxyUrl = 'http://your-provider-proxy-url'; // run the provider proxy server using the code from the provider proxy server repo and the readme instructions in the repo
@@ -385,53 +375,43 @@ Updates an existing deployment using the Lease ID and ICL YAML configuration.
 
 ```javascript
 const updatedIclYaml = `
-version: "1.0"
+version: "2.0"
 
 services:
   py-cuda:
     image: quay.io/jupyter/pytorch-notebook:cuda12-pytorch-2.4.1
-    expose:
+    port_policy:
       - port: 8888
         as: 8888
         to:
           - global: true
     env:
       - JUPYTER_TOKEN=sentient
-profiles:
-  name: py-cuda
+    resources:
+      cpu:
+        units: 4
+      memory:
+        size: 8Gi
+      storage:
+        - size: 100Gi
+      gpu:
+        units: 1
+        attributes:
+          vendor:
+            nvidia:
+              - model: rtx4090
+      pricing:
+        token: uSPON
+        amount: 10
+      replica: 1
+
+deployment:
   duration: 2h
   mode: provider
   tier:
     - community
-  compute:
-    py-cuda:
-      resources:
-        cpu:
-          units: 4
-        memory:
-          size: 8Gi
-        storage:
-          - size: 100Gi
-        gpu:
-          units: 1
-          attributes:
-            vendor:
-              nvidia:
-                - model: rtx4090
-  placement:
-    westcoast:
-      attributes:
-        region: us-central
-      pricing:
-        py-cuda:
-          token: uSPON
-          amount: 10
-
-deployment:
-  py-cuda:
-    westcoast:
-      profile: py-cuda
-      count: 1
+  attributes:
+    region: us-central
 `;
 
 const leaseId = 'your-lease-id';
@@ -519,7 +499,7 @@ console.log('Deployment closed:', closeDeploymentResult);
   - `gasUsed` (BigNumber): The amount of gas used for the transaction.
   - Other standard Ethereum transaction receipt fields.
 
-**Note:** To submit manifests to a provider, a proxy server needs to be set up by the SDK consumer. You can find the proxy server code and instructions [here](https://github.com/spheronFdn/provider-proxy-server).
+**Note:** To submit manifests to a provider, a proxy server needs to be set up by the SDK consumer. You can find the proxy server code and instructions [here](https://github.com/spheron-core/protocol-sdk/tree/main/provider-proxy-server).
 
 ### Lease Module
 
@@ -673,7 +653,7 @@ sdk.leases.listenToLeaseClosedEvent(
 
 ## Examples
 
-For detailed examples of how to use each module, please refer to the [Examples Directory](https://github.com/spheronFdn/protocol-sdk/tree/main/examples).
+For detailed examples of how to use each module, please refer to the [Examples Directory](https://github.com/spheron-core/protocol-sdk/tree/main/example).
 
 ## Error Handling
 
