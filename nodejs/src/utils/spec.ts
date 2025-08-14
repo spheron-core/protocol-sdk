@@ -29,6 +29,9 @@ type Original = Record<string, any>;
 
 const keyMap: Record<string, string> = {
   Name: 'n',
+  Price: 'p',
+  Token: 'd',
+  Amount: 'v',
   PlacementsRequirement: 'pr',
   ProviderWallets: 'pw',
   Attributes: 'a',
@@ -46,6 +49,7 @@ const keyMap: Record<string, string> = {
   Kind: 'k',
   SequenceNumber: 's',
   ReplicaCount: 'c',
+  Mount: 'm',
 };
 
 export const compressOrderSpec = (input: Original): Compressed => {
@@ -72,6 +76,8 @@ export const compressOrderSpec = (input: Original): Compressed => {
 const decompressOrderSpecData = (compressed: string): object => {
   const mapping: { [key: string]: string } = {
     n: 'Name',
+    p: 'Price',
+    d: 'Token',
     pr: 'PlacementsRequirement',
     pw: 'ProviderWallets',
     a: 'Attributes',
@@ -153,6 +159,14 @@ const renameFields = (data: any) => {
         // Rename "CPU" to "ReplicaCount"
         service.ReplicaCount = service.CPU;
         delete service.CPU;
+      }
+    });
+    data.Services.forEach((service: any) => {
+      if (service.Resources.Storage) {
+        service.Resources.Storage.forEach((storage: any) => {
+          storage.Mount = storage.Memory;
+          delete storage.Memory;
+        });
       }
     });
   }
