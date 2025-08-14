@@ -234,6 +234,9 @@ export class FizzModule {
         )
       ).map((result) => {
         if (result.status === 'fulfilled') {
+          if (Object.keys(result.value.cluster.inventory.available).length === 0) {
+            return { nodes: [] };
+          }
           return result.value.cluster.inventory.available;
         } else {
           console.error(`Failed to get fizz nodes for provider: ${result.reason}`);
