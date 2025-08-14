@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Update deposit balance methods to perform an allowance check before executing the deposit transaction.
+- Disable uSPON token for deployments on fizz nodes
 
 ### Fixed
 - Fix fizz inventory breaking when inventory available data is empty
