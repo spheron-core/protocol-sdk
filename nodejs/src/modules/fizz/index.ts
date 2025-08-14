@@ -36,7 +36,7 @@ export class FizzModule {
     provider: ethers.Provider,
     wallet?: ethers.Wallet,
     networkType?: NetworkType,
-    rpcUrls?: RpcUrls,
+    rpcUrls?: RpcUrls
   ) {
     this.provider = provider;
     this.wallet = wallet;
@@ -234,6 +234,9 @@ export class FizzModule {
         )
       ).map((result) => {
         if (result.status === 'fulfilled') {
+          if (Object.keys(result.value.cluster.inventory.available).length === 0) {
+            return { nodes: [] };
+          }
           return result.value.cluster.inventory.available;
         } else {
           console.error(`Failed to get fizz nodes for provider: ${result.reason}`);
@@ -411,7 +414,7 @@ export class FizzModule {
 
     try {
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const contract = new ethers.Contract(contractAddress, contractAbi, );
+      const contract = new ethers.Contract(contractAddress, contractAbi);
 
       return new Promise((resolve, reject) => {
         this.timeoutId = setTimeout(() => {

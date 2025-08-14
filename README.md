@@ -109,7 +109,7 @@ docker run -p 3040:3040 spheronnetwork/provider-proxy-server:latest
 Clone the repository and run the server:
 
 ```bash
-git clone https://github.com/spheronFdn/protocol-sdk.git
+git clone https://github.com/spheron-core/protocol-sdk.git
 cd protocol-sdk/provider-proxy-server
 npm install
 npm run start

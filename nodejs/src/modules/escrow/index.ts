@@ -139,6 +139,16 @@ export class EscrowModule {
       const approvalTxn = await tokenContract.approve(contractAddress, depositAmount);
       await approvalTxn.wait();
 
+      // poll for allowance till it is greater than deposit amount, try only 5 times
+      const allowance = await tokenContract.allowance(signer.address, contractAddress);
+      let allowanceValue = BigInt(allowance);
+      let i = 0;
+      while (allowanceValue < depositAmount && i < 5) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        allowanceValue = await tokenContract.allowance(signer.address, contractAddress);
+        i++;
+      }
+
       const result = await contract.deposit(tokenAddress, depositAmount);
       const receipt = await result.wait();
       if (onSuccessCallback) onSuccessCallback(receipt);
@@ -160,14 +170,6 @@ export class EscrowModule {
     try {
       const contractAddress = contractAddresses[this.networkType].escrow;
 
-      const network = await this.provider.getNetwork();
-      const chainId = network.chainId;
-      const { signer } = await initializeSigner({ wallet: this.wallet });
-      const signerAddress = signer.address;
-      // Get the current nonce for the signer
-      const contract = new ethers.Contract(contractAddress, contractABI, signer);
-      const nonce = await contract.nonces(signerAddress);
-
       const tokenDetails = tokenMap[this.networkType].find(
         (eachToken) => eachToken.symbol.toLowerCase() === token.toLowerCase()
       );
@@ -176,10 +178,47 @@ export class EscrowModule {
       }
       const decimals = tokenDetails?.decimal ?? 18;
       const tokenAddress: string = tokenDetails?.address;
+      const tokenABI = abiMap[this.networkType].testToken;
 
       const finalAmount = Number(amount.toString());
       const depositAmount = ethers.parseUnits(finalAmount.toFixed(decimals), decimals);
 
+      const smartWalletBundlerClient = await this.smartWalletBundlerClientPromise;
+
+      const approveTxnHash = await smartWalletBundlerClient?.sendUserOperation({
+        calls: [
+          {
+            abi: tokenABI,
+            functionName: 'approve',
+            to: tokenAddress as `0x${string}`,
+            args: [contractAddress, depositAmount],
+          },
+        ],
+      });
+      await smartWalletBundlerClient?.waitForUserOperationReceipt({
+        hash: approveTxnHash!,
+      });
+
+      const tokenContract = new ethers.Contract(tokenAddress, tokenABI, this.provider);
+      const accountAddress = await smartWalletBundlerClient?.account?.address;
+      const allowance = await tokenContract.allowance(accountAddress, contractAddress);
+      let allowanceValue = BigInt(allowance);
+
+      // poll for allowance till it is greater than deposit amount, try only 5 times
+      let i = 0;
+      while (allowanceValue < depositAmount && i < 5) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        allowanceValue = await tokenContract.allowance(accountAddress, contractAddress);
+        i++;
+      }
+
+      const network = await this.provider.getNetwork();
+      const chainId = network.chainId;
+      const { signer } = await initializeSigner({ wallet: this.wallet });
+      const signerAddress = signer.address;
+      // Get the current nonce for the signer
+      const contract = new ethers.Contract(contractAddress, contractABI, signer);
+      const nonce = await contract.nonces(signerAddress);
       const deadline = Math.floor(Date.now() / 1000) + SIGNATURE_DEADLINE;
 
       const domain = {
@@ -207,23 +246,6 @@ export class EscrowModule {
 
       // Sign the typed data using EIP-712
       const signature = await signer.signTypedData(domain, types, value);
-
-      const smartWalletBundlerClient = await this.smartWalletBundlerClientPromise;
-
-      const tokenABI = abiMap[this.networkType].testToken;
-      const approveTxnHash = await smartWalletBundlerClient?.sendUserOperation({
-        calls: [
-          {
-            abi: tokenABI,
-            functionName: 'approve',
-            to: tokenAddress as `0x${string}`,
-            args: [contractAddress, depositAmount],
-          },
-        ],
-      });
-      await smartWalletBundlerClient?.waitForUserOperationReceipt({
-        hash: approveTxnHash!,
-      });
 
       const txHash = await smartWalletBundlerClient?.sendUserOperation({
         calls: [
@@ -524,15 +546,6 @@ export class EscrowModule {
     const contractAbi = abiMap[this.networkType].escrow;
     try {
       const contractAddress = contractAddresses[this.networkType].escrow;
-      const network = await this.provider.getNetwork();
-      const chainId = network.chainId;
-      const { signer } = await initializeSigner({ wallet: this.wallet });
-      const signerAddress = signer.address;
-      const tokenABI = abiMap[this.networkType].testToken;
-
-      const contract = new ethers.Contract(contractAddress, contractAbi, signer);
-      const nonce = await contract.nonces(signerAddress);
-
       const tokenDetails = tokenMap[this.networkType].find(
         (eachToken) => eachToken.symbol.toLowerCase() === token.toLowerCase()
       );
@@ -542,11 +555,10 @@ export class EscrowModule {
       }
       const decimals = tokenDetails?.decimal ?? 18;
       const tokenAddress: string = tokenDetails?.address;
+      const tokenABI = abiMap[this.networkType].testToken;
 
       const finalAmount = Number(amount.toString());
       const depositAmount = ethers.parseUnits(finalAmount.toString(), decimals);
-
-      const deadline = Math.floor(Date.now() / 1000) + SIGNATURE_DEADLINE * 1000;
 
       const smartWalletBundlerClient = await this.smartWalletBundlerClientPromise;
 
@@ -563,6 +575,29 @@ export class EscrowModule {
       await smartWalletBundlerClient?.waitForUserOperationReceipt({
         hash: approveTxnHash!,
       });
+
+      const tokenContract = new ethers.Contract(tokenAddress, tokenABI, this.provider);
+      const accountAddress = await smartWalletBundlerClient?.account?.address;
+      const allowance = await tokenContract.allowance(accountAddress, contractAddress);
+      let allowanceValue = BigInt(allowance);
+
+      // poll for allowance till it is greater than deposit amount, try only 5 times  
+      let i = 0;
+      while (allowanceValue < depositAmount && i < 5) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        allowanceValue = await tokenContract.allowance(accountAddress, contractAddress);
+        i++;
+      }
+
+      const network = await this.provider.getNetwork();
+      const chainId = network.chainId;
+      const { signer } = await initializeSigner({ wallet: this.wallet });
+      const signerAddress = signer.address;
+
+      const contract = new ethers.Contract(contractAddress, contractAbi, signer);
+      const nonce = await contract.nonces(signerAddress);
+
+      const deadline = Math.floor(Date.now() / 1000) + SIGNATURE_DEADLINE * 1000;
 
       const domain = {
         name: 'Spheron',

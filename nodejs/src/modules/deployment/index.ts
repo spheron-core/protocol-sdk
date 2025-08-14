@@ -9,11 +9,15 @@ import {
 import { ProviderModule } from '@modules/provider';
 import { IProvider } from '@modules/provider/types';
 import { SpheronProviderModule } from '@modules/spheron-provider';
-import { getManifestIcl, yamlToOrderDetails } from '@utils/deployment';
+import { SpheronProviderModuleV2 } from '@modules/spheron-provider-v2';
+import { getManifestIcl, getManifestV2, yamlToOrderDetails, V2Manifest } from '@utils/deployment';
+import { ServiceManifest } from '@utils/manifest-utils';
 import { getTokenDetails, replaceDomain } from '@utils/index';
 import { createAuthorizationToken } from '@utils/provider-auth';
 import { NetworkType, RpcUrls } from '@config/index';
+import { contractAddresses } from '@contracts/addresses';
 import { ethers } from 'ethers';
+import * as yaml from 'js-yaml';
 import {
   CreateDeploymentResponse,
   DeploymentResponse,
@@ -69,8 +73,21 @@ export class DeploymentModule {
       if (error || typeof details === 'undefined') {
         throw new Error('Please verify YAML format');
       }
-      const sdlManifest = getManifestIcl(iclYaml);
-      const { token, maxPrice, numOfBlocks } = details;
+
+      // Detect YAML version and generate appropriate manifest
+      const icl = yaml.load(iclYaml) as any;
+      const isV2 = Number(icl.version) === 2;
+      const sdlManifest = isV2 ? getManifestV2(iclYaml) : getManifestIcl(iclYaml);
+      const { token, maxPrice, numOfBlocks, mode } = details;
+      
+      // Check if this is a fizz deployment (mode === 0) and validate token
+      if (mode === 0) {
+        const sponTokenAddress = contractAddresses[this.networkType].SPON;
+        if (token.toLowerCase() !== sponTokenAddress.toLowerCase()) {
+          throw new Error('For fizz deployments, only SPON token is allowed');
+        }
+      }
+      
       const tokenDetails = getTokenDetails(token, this.networkType as NetworkType);
       const decimal = 18;
       const totalCost = (Number(maxPrice.toString()) / 10 ** decimal) * Number(numOfBlocks);
@@ -106,17 +123,31 @@ export class DeploymentModule {
         const { certificate, hostUri } = providerDetails;
         const authToken = await createAuthorizationToken(this.wallet);
         const port = details.mode === 0 ? 8543 : 8443;
-        const spheronProvider = new SpheronProviderModule(
-          `https://${hostUri}:${port}`,
-          providerProxyUrl
-        );
+
         try {
-          await spheronProvider.submitManfiest(
-            certificate,
-            authToken,
-            leaseId.toString(),
-            sdlManifest
-          );
+          if (isV2) {
+            const spheronProviderV2 = new SpheronProviderModuleV2(
+              `https://${hostUri}:${port}`,
+              providerProxyUrl
+            );
+            await spheronProviderV2.submitManfiest(
+              certificate,
+              authToken,
+              leaseId.toString(),
+              sdlManifest as V2Manifest
+            );
+          } else {
+            const spheronProvider = new SpheronProviderModule(
+              `https://${hostUri}:${port}`,
+              providerProxyUrl
+            );
+            await spheronProvider.submitManfiest(
+              certificate,
+              authToken,
+              leaseId.toString(),
+              sdlManifest as { name: string; services: ServiceManifest[] }[]
+            );
+          }
           return { leaseId, transactionHash };
         } catch (error) {
           throw new Error('Error occurred in sending manifest');
@@ -144,8 +175,21 @@ export class DeploymentModule {
       if (error || typeof details === 'undefined') {
         throw new Error('Please verify YAML format');
       }
-      const sdlManifest = getManifestIcl(iclYaml);
-      const { token, maxPrice, numOfBlocks } = details;
+
+      // Detect YAML version and generate appropriate manifest
+      const icl = yaml.load(iclYaml) as any;
+      const isV2 = icl.version === '2.0';
+      const sdlManifest = isV2 ? getManifestV2(iclYaml) : getManifestIcl(iclYaml);
+      const { token, maxPrice, numOfBlocks, mode } = details;
+      
+      // Check if this is a fizz deployment (mode === 0) and validate token
+      if (mode === 0) {
+        const sponTokenAddress = contractAddresses[this.networkType].SPON;
+        if (token.toLowerCase() !== sponTokenAddress.toLowerCase()) {
+          throw new Error('For fizz deployments, only SPON token is allowed');
+        }
+      }
+      
       const tokenDetails = getTokenDetails(token, this.networkType as NetworkType);
       const decimal = 18;
       const totalCost =
@@ -188,17 +232,30 @@ export class DeploymentModule {
             );
             const { certificate, hostUri } = providerDetails;
             const port = details.mode === 0 ? 8543 : 8443;
-            const spheronProvider = new SpheronProviderModule(
-              `https://${hostUri}:${port}`,
-              providerProxyUrl
-            );
             const authToken = await createAuthorizationToken(this.wallet!);
-            await spheronProvider.submitManfiest(
-              certificate,
-              authToken,
-              leaseId as string,
-              sdlManifest
-            );
+            if (isV2) {
+              const spheronProviderV2 = new SpheronProviderModuleV2(
+                `https://${hostUri}:${port}`,
+                providerProxyUrl
+              );
+              await spheronProviderV2.updateManfiest(
+                certificate,
+                authToken,
+                leaseId as string,
+                sdlManifest as V2Manifest
+              );
+            } else {
+              const spheronProvider = new SpheronProviderModule(
+                `https://${hostUri}:${port}`,
+                providerProxyUrl
+              );
+              await spheronProvider.submitManfiest(
+                certificate,
+                authToken,
+                leaseId as string,
+                sdlManifest as { name: string; services: ServiceManifest[] }[]
+              );
+            }
             const updateOrderLeaseResponse: OrderUpdatedEvent = await updatedOrderLease;
             updateLeaseResponse = { ...updateOrderLeaseResponse };
           },
@@ -233,7 +290,7 @@ export class DeploymentModule {
       );
       const { certificate, hostUri } = providerDetails;
 
-      const spheronProvider = new SpheronProviderModule(
+      const spheronProvider = new SpheronProviderModuleV2(
         `https://${hostUri}:${port}`,
         providerProxyUrl
       );
@@ -307,7 +364,7 @@ export class DeploymentModule {
       );
       const { certificate, hostUri } = providerDetails;
 
-      const spheronProvider = new SpheronProviderModule(
+      const spheronProvider = new SpheronProviderModuleV2(
         `https://${hostUri}:${port}`,
         `${providerProxyUrl}/ws-data`
       );
