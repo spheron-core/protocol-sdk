@@ -5,6 +5,17 @@ All notable changes to the Spheron Protocol SDK will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2025-08-14
+
+### Added
+- Add support for ICL v2 for deployments
+
+### Changed
+- Update deposit balance methods to perform an allowance check before executing the deposit transaction.
+
+### Fixed
+- Fix fizz inventory breaking when inventory available data is empty
+
 ## [2.5.0] - 2025-07-30
 
 ### Added
